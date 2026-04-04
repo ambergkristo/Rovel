@@ -1,0 +1,86 @@
+:root {
+  --page-bg: #f2efe8;
+  --surface: #fcfbf8;
+  --panel-tint: #f3efe6;
+  --line: #d4cec2;
+  --ink: #1c221d;
+  --ink-strong: #121512;
+  --muted: #5f675f;
+  --accent: #2a6e54;
+  --accent-strong: #1e5a42;
+  --danger: #a1382f;
+  --notice-bg: #f5f0d9;
+  font-family:
+    'IBM Plex Sans',
+    'Segoe UI',
+    sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: var(--ink);
+  background: radial-gradient(circle at top left, #fff8ea 0%, var(--page-bg) 55%, #e7e4dc 100%);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  color: var(--ink);
+  background: transparent;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  margin-bottom: 10px;
+  font-size: clamp(2rem, 4vw, 3.45rem);
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+}
+
+h2 {
+  font-size: clamp(1.3rem, 2vw, 1.85rem);
+  margin-bottom: 6px;
+}
+
+h3 {
+  font-size: 1rem;
+  margin-bottom: 4px;
+}
+
+p {
+  color: var(--muted);
+}
+
+#root {
+  width: min(1440px, 100%);
+  margin: 0 auto;
+}
+
+a {
+  color: inherit;
+}
