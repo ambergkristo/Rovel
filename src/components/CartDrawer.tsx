@@ -1,9 +1,17 @@
 import { Link } from 'react-router-dom'
+import { useLocale } from '../context/useLocale'
 import { useCart } from '../context/useCart'
-import { formatPrice, stockStatusLabelMap } from '../lib/shop'
+import { resolveText } from '../lib/localization'
+import {
+  formatPrice,
+  getOptionGroupLabel,
+  getOptionValueLabel,
+  getProductById,
+} from '../lib/shop'
 
 export function CartDrawer() {
   const { items, isCartOpen, subtotal, closeCart, updateQuantity, removeItem } = useCart()
+  const { locale, messages } = useLocale()
 
   return (
     <>
@@ -12,13 +20,13 @@ export function CartDrawer() {
         aria-hidden={!isCartOpen}
         onClick={closeCart}
       />
-      <aside className={`cart-drawer ${isCartOpen ? 'is-open' : ''}`} aria-label="Shopping cart">
+      <aside className={`cart-drawer ${isCartOpen ? 'is-open' : ''}`} aria-label={messages.cart.title}>
         <header className="cart-drawer__header">
           <div>
-            <p className="eyebrow">Cart</p>
-            <h2>Your selection</h2>
+            <p className="eyebrow">{messages.common.cart}</p>
+            <h2>{messages.cart.drawerTitle}</h2>
           </div>
-          <button type="button" className="icon-button" onClick={closeCart} aria-label="Close cart">
+          <button type="button" className="icon-button" onClick={closeCart} aria-label={messages.common.cart}>
             ×
           </button>
         </header>
@@ -26,69 +34,81 @@ export function CartDrawer() {
         {items.length ? (
           <>
             <div className="cart-drawer__items">
-              {items.map((item) => (
-                <article key={item.id} className="cart-line">
-                  <img src={item.image} alt={item.name} className="cart-line__image" />
-                  <div className="cart-line__content">
-                    <div className="cart-line__header">
-                      <div>
-                        <h3>{item.name}</h3>
-                        <span className={`status-badge status-badge--${item.stockStatus}`}>
-                          {stockStatusLabelMap[item.stockStatus]}
-                        </span>
+              {items.map((item) => {
+                const product = getProductById(item.productId)
+
+                if (!product) {
+                  return null
+                }
+
+                const stockLabel =
+                  item.stockStatus === 'in-stock'
+                    ? messages.common.inStock
+                    : item.stockStatus === 'low-stock'
+                      ? messages.common.lowStock
+                      : messages.common.madeToOrder
+
+                return (
+                  <article key={item.id} className="cart-line">
+                    <img src={product.images[0]?.src} alt={resolveText(product.images[0]?.alt, locale)} className="cart-line__image" />
+                    <div className="cart-line__content">
+                      <div className="cart-line__header">
+                        <div>
+                          <h3>{resolveText(product.name, locale)}</h3>
+                          <span className={`status-badge status-badge--${item.stockStatus}`}>{stockLabel}</span>
+                        </div>
+                        <strong>{formatPrice(item.unitPrice, locale)}</strong>
                       </div>
-                      <strong>{formatPrice(item.unitPrice)}</strong>
-                    </div>
-                    <ul className="cart-line__options">
-                      {item.selectedOptions.map((option) => (
-                        <li key={`${item.id}-${option.groupId}`}>
-                          {option.groupLabel}: {option.valueLabel}
-                        </li>
-                      ))}
-                    </ul>
-                    <div className="cart-line__footer">
-                      <div className="qty-control">
-                        <button type="button" onClick={() => updateQuantity(item.id, item.quantity - 1)}>
-                          -
-                        </button>
-                        <span>{item.quantity}</span>
-                        <button type="button" onClick={() => updateQuantity(item.id, item.quantity + 1)}>
-                          +
+                      <ul className="cart-line__options">
+                        {item.selectedOptions.map((option) => (
+                          <li key={`${item.id}-${option.groupId}`}>
+                            {getOptionGroupLabel(product, option.groupId, locale)}:{' '}
+                            {getOptionValueLabel(product, option.groupId, option.valueId, locale)}
+                          </li>
+                        ))}
+                      </ul>
+                      <div className="cart-line__footer">
+                        <div className="qty-control">
+                          <button type="button" onClick={() => updateQuantity(item.id, item.quantity - 1)}>
+                            -
+                          </button>
+                          <span>{item.quantity}</span>
+                          <button type="button" onClick={() => updateQuantity(item.id, item.quantity + 1)}>
+                            +
+                          </button>
+                        </div>
+                        <button type="button" className="text-button" onClick={() => removeItem(item.id)}>
+                          {messages.cart.remove}
                         </button>
                       </div>
-                      <button type="button" className="text-button" onClick={() => removeItem(item.id)}>
-                        Remove
-                      </button>
                     </div>
-                  </div>
-                </article>
-              ))}
+                  </article>
+                )
+              })}
             </div>
 
             <footer className="cart-drawer__footer">
               <div className="cart-total">
-                <span>Subtotal</span>
-                <strong>{formatPrice(subtotal)}</strong>
+                <span>{messages.cart.subtotal}</span>
+                <strong>{formatPrice(subtotal, locale)}</strong>
               </div>
-              <p className="supporting-text">
-                Checkout is the next sprint. Use the cart now to collect a realistic basket and continue to the cart page.
-              </p>
+              <p className="supporting-text">{messages.cart.customSizingText}</p>
               <div className="stack-actions">
                 <Link to="/cart" className="button button--primary" onClick={closeCart}>
-                  Review cart
+                  {messages.cart.reviewCart}
                 </Link>
                 <Link to="/custom-order" className="button button--ghost" onClick={closeCart}>
-                  Request custom solution
+                  {messages.common.requestCustomSolution}
                 </Link>
               </div>
             </footer>
           </>
         ) : (
           <div className="empty-state empty-state--drawer">
-            <h3>Your cart is empty</h3>
-            <p>Start with standard products, then branch to custom work where the project needs it.</p>
+            <h3>{messages.cart.emptyTitle}</h3>
+            <p>{messages.cart.drawerEmptyText}</p>
             <Link to="/products/doors" className="button button--primary" onClick={closeCart}>
-              Browse doors
+              {messages.home.shopDoors}
             </Link>
           </div>
         )}

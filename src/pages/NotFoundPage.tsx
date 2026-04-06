@@ -1,13 +1,16 @@
 import { Link } from 'react-router-dom'
+import { useLocale } from '../context/useLocale'
 
 export function NotFoundPage() {
+  const { messages } = useLocale()
+
   return (
     <div className="page-stack">
       <section className="empty-state">
-        <h1>Page not found</h1>
-        <p>The requested storefront page does not exist.</p>
+        <h1>{messages.errors.pageNotFound}</h1>
+        <p>{messages.errors.pageNotFoundText}</p>
         <Link to="/" className="button button--primary">
-          Return home
+          {messages.common.home}
         </Link>
       </section>
     </div>

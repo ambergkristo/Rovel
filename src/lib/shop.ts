@@ -1,44 +1,47 @@
 import { categories, products } from '../data/storefront'
+import { getNumberLocale, resolveText } from './localization'
 import type {
   CartItem,
   CategoryId,
   FilterOptions,
   ListingFilters,
+  Locale,
+  LocalizedValue,
   Product,
   SelectedOptionDetail,
   SortOption,
-  StockStatus,
 } from '../types'
 
-export const currencyFormatter = new Intl.NumberFormat('en-EE', {
-  style: 'currency',
-  currency: 'EUR',
-  maximumFractionDigits: 0,
-})
-
-export const formatPrice = (value: number) => currencyFormatter.format(value)
-
-export const categoryLabelMap = Object.fromEntries(
-  categories.map((category) => [category.id, category.label]),
-) as Record<CategoryId, string>
-
-export const stockStatusLabelMap: Record<StockStatus, string> = {
-  'in-stock': 'In stock',
-  'low-stock': 'Low stock',
-  'made-to-order': 'Made to order',
-}
+export const formatPrice = (value: number, locale: Locale) =>
+  new Intl.NumberFormat(getNumberLocale(locale), {
+    style: 'currency',
+    currency: 'EUR',
+    maximumFractionDigits: 0,
+  }).format(value)
 
 export const getCategoryById = (categoryId?: string | null) =>
   categories.find((category) => category.id === categoryId)
 
+export const getCategoryLabel = (categoryId: CategoryId, locale: Locale) =>
+  resolveText(categories.find((category) => category.id === categoryId)!.label, locale)
+
 export const getProductsByCategory = (categoryId: CategoryId) =>
   products.filter((product) => product.category === categoryId)
+
+export const getProductById = (productId: string) =>
+  products.find((product) => product.id === productId)
 
 export const getProductBySlug = (slug?: string | null) =>
   products.find((product) => product.slug === slug)
 
 export const getFeaturedProducts = (limit = 4) =>
   products.filter((product) => product.featured).slice(0, limit)
+
+export const getPopularProducts = (limit = 4) =>
+  [...products]
+    .filter((product) => product.popular)
+    .sort((left, right) => right.reviewCount - left.reviewCount)
+    .slice(0, limit)
 
 export const getRelatedProducts = (product: Product, limit = 3) =>
   products
@@ -64,9 +67,7 @@ export const getSelectedOptionDetails = (
 
       return {
         groupId: group.id,
-        groupLabel: group.label,
         valueId: value.id,
-        valueLabel: value.label,
         priceDelta: value.priceDelta ?? 0,
       }
     })
@@ -78,6 +79,26 @@ export const getConfiguredPrice = (product: Product, selection: Record<string, s
     (sum, option) => sum + option.priceDelta,
     0,
   )
+
+export const getOptionGroupLabel = (
+  product: Product,
+  groupId: string,
+  locale: Locale,
+) => {
+  const group = product.purchaseOptions.find((entry) => entry.id === groupId)
+  return group ? resolveText(group.label, locale) : groupId
+}
+
+export const getOptionValueLabel = (
+  product: Product,
+  groupId: string,
+  valueId: string,
+  locale: Locale,
+) => {
+  const group = product.purchaseOptions.find((entry) => entry.id === groupId)
+  const value = group?.values.find((entry) => entry.id === valueId)
+  return value ? resolveText(value.label, locale) : valueId
+}
 
 const buildCartItemId = (productId: string, selectedOptions: SelectedOptionDetail[]) =>
   `${productId}-${selectedOptions
@@ -96,32 +117,31 @@ export const createCartItem = (
     id: buildCartItemId(product.id, selectedOptions),
     productId: product.id,
     slug: product.slug,
-    name: product.name,
-    image: product.images[0]?.src ?? '',
     unitPrice: getConfiguredPrice(product, selection),
     quantity,
     currency: product.currency,
     selectedOptions,
     stockStatus: product.stockStatus,
-    leadTime: product.leadTime,
-    customOrderCapable: product.customOrderCapable,
   }
 }
+
+const uniqueLocalizedValues = (values: LocalizedValue[]) =>
+  Array.from(new Map(values.map((value) => [value.key, value])).values())
 
 export const getFilterOptions = (categoryProducts: Product[]): FilterOptions => {
   const prices = categoryProducts.map((product) => product.basePrice)
 
   return {
-    types: Array.from(new Set(categoryProducts.map((product) => product.type))).sort(),
-    materials: Array.from(new Set(categoryProducts.map((product) => product.material))).sort(),
-    finishes: Array.from(new Set(categoryProducts.map((product) => product.finish))).sort(),
+    types: uniqueLocalizedValues(categoryProducts.map((product) => product.type)),
+    materials: uniqueLocalizedValues(categoryProducts.map((product) => product.material)),
+    finishes: uniqueLocalizedValues(categoryProducts.map((product) => product.finish)),
     widths: Array.from(new Set(categoryProducts.flatMap((product) => product.widthOptions))).sort(
       (left, right) => left - right,
     ),
     heights: Array.from(new Set(categoryProducts.flatMap((product) => product.heightOptions))).sort(
       (left, right) => left - right,
     ),
-    handings: Array.from(new Set(categoryProducts.flatMap((product) => product.handings))).sort(),
+    handings: uniqueLocalizedValues(categoryProducts.flatMap((product) => product.handings)),
     stockStatuses: ['in-stock', 'low-stock', 'made-to-order'],
     minPrice: Math.min(...prices),
     maxPrice: Math.max(...prices),
@@ -156,17 +176,18 @@ export const filterProducts = (
   categoryProducts: Product[],
   filters: ListingFilters,
   sortBy: SortOption,
+  locale: Locale,
 ) => {
   const results = categoryProducts.filter((product) => {
-    if (filters.types.length && !filters.types.includes(product.type)) {
+    if (filters.types.length && !filters.types.includes(product.type.key)) {
       return false
     }
 
-    if (filters.materials.length && !filters.materials.includes(product.material)) {
+    if (filters.materials.length && !filters.materials.includes(product.material.key)) {
       return false
     }
 
-    if (filters.finishes.length && !filters.finishes.includes(product.finish)) {
+    if (filters.finishes.length && !filters.finishes.includes(product.finish.key)) {
       return false
     }
 
@@ -187,7 +208,7 @@ export const filterProducts = (
     if (
       filters.handings.length &&
       product.handings.length > 0 &&
-      !filters.handings.some((handing) => product.handings.includes(handing))
+      !filters.handings.some((handing) => product.handings.some((entry) => entry.key === handing))
     ) {
       return false
     }
@@ -224,7 +245,13 @@ export const filterProducts = (
   }
 
   if (sortBy === 'name-asc') {
-    return [...results].sort((left, right) => left.name.localeCompare(right.name))
+    return [...results].sort((left, right) =>
+      resolveText(left.name, locale).localeCompare(resolveText(right.name, locale)),
+    )
+  }
+
+  if (sortBy === 'popular') {
+    return [...results].sort((left, right) => right.reviewCount - left.reviewCount)
   }
 
   return [...results].sort((left, right) => {

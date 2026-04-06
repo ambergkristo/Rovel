@@ -1,5 +1,6 @@
-import { stockStatusLabelMap } from '../lib/shop'
-import type { FilterOptions, ListingFilters, StockStatus } from '../types'
+import { useLocale } from '../context/useLocale'
+import { resolveText } from '../lib/localization'
+import type { FilterOptions, ListingFilters, LocalizedValue, StockStatus } from '../types'
 
 interface ProductFiltersProps {
   filters: ListingFilters
@@ -16,21 +17,16 @@ interface ProductFiltersProps {
   onReset: () => void
 }
 
-interface FilterSectionProps<T> {
+interface FilterSectionProps {
   title: string
-  values: T[]
-  selectedValues: T[]
-  getLabel: (value: T) => string
-  onToggle: (value: T) => void
+  values: LocalizedValue[]
+  selectedValues: string[]
+  onToggle: (value: string) => void
 }
 
-function FilterSection<T extends string | number>({
-  title,
-  values,
-  selectedValues,
-  getLabel,
-  onToggle,
-}: FilterSectionProps<T>) {
+function FilterSection({ title, values, selectedValues, onToggle }: FilterSectionProps) {
+  const { locale } = useLocale()
+
   if (!values.length) {
     return null
   }
@@ -43,12 +39,12 @@ function FilterSection<T extends string | number>({
       <div className="chip-list">
         {values.map((value) => (
           <button
-            key={String(value)}
+            key={value.key}
             type="button"
-            className={`chip-button ${selectedValues.includes(value) ? 'is-active' : ''}`}
-            onClick={() => onToggle(value)}
+            className={`chip-button ${selectedValues.includes(value.key) ? 'is-active' : ''}`}
+            onClick={() => onToggle(value.key)}
           >
-            {getLabel(value)}
+            {resolveText(value.label, locale)}
           </button>
         ))}
       </div>
@@ -70,81 +66,81 @@ export function ProductFilters({
   onBooleanChange,
   onReset,
 }: ProductFiltersProps) {
+  const { messages } = useLocale()
+
+  const stockValues: LocalizedValue[] = [
+    { key: 'in-stock', label: { et: messages.common.inStock, en: messages.common.inStock, ru: messages.common.inStock } },
+    { key: 'low-stock', label: { et: messages.common.lowStock, en: messages.common.lowStock, ru: messages.common.lowStock } },
+    { key: 'made-to-order', label: { et: messages.common.madeToOrder, en: messages.common.madeToOrder, ru: messages.common.madeToOrder } },
+  ]
+
   return (
     <aside className="filter-panel">
       <div className="filter-panel__top">
         <div>
-          <p className="eyebrow">Browse filters</p>
-          <h2>Refine products</h2>
+          <p className="eyebrow">{messages.products.overviewEyebrow}</p>
+          <h2>{messages.products.refineTitle}</h2>
         </div>
         <button type="button" className="button button--ghost button--compact" onClick={onReset}>
-          Reset
+          {messages.common.reset}
         </button>
       </div>
 
-      <FilterSection
-        title="Type"
-        values={options.types}
-        selectedValues={filters.types}
-        getLabel={(value) => value}
-        onToggle={onToggleType}
-      />
+      <FilterSection title={messages.filters.type} values={options.types} selectedValues={filters.types} onToggle={onToggleType} />
+      <FilterSection title={messages.filters.material} values={options.materials} selectedValues={filters.materials} onToggle={onToggleMaterial} />
+      <FilterSection title={messages.filters.finish} values={options.finishes} selectedValues={filters.finishes} onToggle={onToggleFinish} />
+      <FilterSection title={messages.filters.handing} values={options.handings} selectedValues={filters.handings} onToggle={onToggleHanding} />
+
+      <section className="filter-group">
+        <div className="filter-group__header">
+          <h3>{messages.filters.width}</h3>
+        </div>
+        <div className="chip-list">
+          {options.widths.map((value) => (
+            <button
+              key={value}
+              type="button"
+              className={`chip-button ${filters.widths.includes(value) ? 'is-active' : ''}`}
+              onClick={() => onToggleWidth(value)}
+            >
+              {value} mm
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="filter-group">
+        <div className="filter-group__header">
+          <h3>{messages.filters.height}</h3>
+        </div>
+        <div className="chip-list">
+          {options.heights.map((value) => (
+            <button
+              key={value}
+              type="button"
+              className={`chip-button ${filters.heights.includes(value) ? 'is-active' : ''}`}
+              onClick={() => onToggleHeight(value)}
+            >
+              {value} mm
+            </button>
+          ))}
+        </div>
+      </section>
 
       <FilterSection
-        title="Material"
-        values={options.materials}
-        selectedValues={filters.materials}
-        getLabel={(value) => value}
-        onToggle={onToggleMaterial}
-      />
-
-      <FilterSection
-        title="Finish"
-        values={options.finishes}
-        selectedValues={filters.finishes}
-        getLabel={(value) => value}
-        onToggle={onToggleFinish}
-      />
-
-      <FilterSection
-        title="Width"
-        values={options.widths}
-        selectedValues={filters.widths}
-        getLabel={(value) => `${value} mm`}
-        onToggle={onToggleWidth}
-      />
-
-      <FilterSection
-        title="Height"
-        values={options.heights}
-        selectedValues={filters.heights}
-        getLabel={(value) => `${value} mm`}
-        onToggle={onToggleHeight}
-      />
-
-      <FilterSection
-        title="Opening / turn"
-        values={options.handings}
-        selectedValues={filters.handings}
-        getLabel={(value) => value}
-        onToggle={onToggleHanding}
-      />
-
-      <FilterSection
-        title="Availability"
-        values={options.stockStatuses}
+        title={messages.filters.availability}
+        values={stockValues}
         selectedValues={filters.stockStatuses}
-        getLabel={(value) => stockStatusLabelMap[value]}
-        onToggle={onToggleStatus}
+        onToggle={(value) => onToggleStatus(value as StockStatus)}
       />
 
       <section className="filter-group">
         <div className="filter-group__header">
-          <h3>Price range</h3>
+          <h3>{messages.filters.priceRange}</h3>
         </div>
         <div className="filter-range">
           <label className="field">
-            <span>Min</span>
+            <span>{messages.filters.min}</span>
             <input
               type="number"
               min={options.minPrice}
@@ -154,7 +150,7 @@ export function ProductFilters({
             />
           </label>
           <label className="field">
-            <span>Max</span>
+            <span>{messages.filters.max}</span>
             <input
               type="number"
               min={filters.priceMin}
@@ -172,11 +168,9 @@ export function ProductFilters({
             <input
               type="checkbox"
               checked={filters.customOrderOnly}
-              onChange={(event) =>
-                onBooleanChange('customOrderOnly', event.target.checked)
-              }
+              onChange={(event) => onBooleanChange('customOrderOnly', event.target.checked)}
             />
-            <span>Custom order capable only</span>
+            <span>{messages.filters.customOnly}</span>
           </label>
         </div>
         <div className="checkbox-card">
@@ -184,11 +178,9 @@ export function ProductFilters({
             <input
               type="checkbox"
               checked={filters.madeToOrderOnly}
-              onChange={(event) =>
-                onBooleanChange('madeToOrderOnly', event.target.checked)
-              }
+              onChange={(event) => onBooleanChange('madeToOrderOnly', event.target.checked)}
             />
-            <span>Made-to-order only</span>
+            <span>{messages.filters.madeToOrderOnly}</span>
           </label>
         </div>
       </section>

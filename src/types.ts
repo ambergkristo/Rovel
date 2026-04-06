@@ -1,74 +1,107 @@
+export type Locale = 'et' | 'en' | 'ru'
+
 export type CategoryId = 'doors' | 'windows' | 'stairs'
 
 export type CurrencyCode = 'EUR'
 
 export type StockStatus = 'in-stock' | 'low-stock' | 'made-to-order'
 
-export type SortOption = 'featured' | 'price-asc' | 'price-desc' | 'name-asc'
+export type SortOption = 'featured' | 'popular' | 'price-asc' | 'price-desc' | 'name-asc'
+
+export type BadgeTone = 'new' | 'popular' | 'project' | 'stock' | 'custom'
+
+export interface LocalizedText {
+  et: string
+  en: string
+  ru: string
+}
+
+export interface LocalizedValue {
+  key: string
+  label: LocalizedText
+}
+
+export interface PromoCard {
+  title: LocalizedText
+  description: LocalizedText
+  eyebrow?: LocalizedText
+}
 
 export interface CategorySummary {
   id: CategoryId
-  label: string
-  heroTitle: string
-  shortDescription: string
-  listingIntro: string
-  keyFacts: string[]
+  label: LocalizedText
+  heroTitle: LocalizedText
+  shortDescription: LocalizedText
+  listingIntro: LocalizedText
+  keyFacts: LocalizedText[]
+  merchandisingCards: PromoCard[]
 }
 
 export interface ProductImage {
   id: string
   src: string
-  alt: string
-  label: string
+  alt: LocalizedText
+  label: LocalizedText
 }
 
 export interface ProductOptionValue {
   id: string
-  label: string
+  label: LocalizedText
   priceDelta?: number
-  note?: string
+  note?: LocalizedText
 }
 
 export interface ProductOptionGroup {
   id: string
-  label: string
-  helperText?: string
+  label: LocalizedText
+  helperText?: LocalizedText
   values: ProductOptionValue[]
 }
 
 export interface ProductSpecification {
-  label: string
-  value: string
+  label: LocalizedText
+  value: LocalizedText
+}
+
+export interface ProductBadge {
+  tone: BadgeTone
+  label: LocalizedText
 }
 
 export interface Product {
   id: string
   slug: string
   category: CategoryId
-  subcategory: string
-  type: string
-  name: string
-  shortDescription: string
-  description: string
+  line: LocalizedText
+  subcategory: LocalizedText
+  type: LocalizedValue
+  name: LocalizedText
+  shortDescription: LocalizedText
+  description: LocalizedText
   basePrice: number
   currency: CurrencyCode
   images: ProductImage[]
-  material: string
-  finish: string
+  material: LocalizedValue
+  finish: LocalizedValue
   widthOptions: number[]
   heightOptions: number[]
-  handings: string[]
+  handings: LocalizedValue[]
   stockStatus: StockStatus
   madeToOrder: boolean
   customOrderCapable: boolean
-  tags: string[]
+  tags: LocalizedText[]
   specifications: ProductSpecification[]
-  leadTime: string
+  leadTime: LocalizedText
+  deliveryNote: LocalizedText
   featured: boolean
-  badge?: string
+  popular?: boolean
+  newArrival?: boolean
+  badge?: ProductBadge
   rating: number
   reviewCount: number
   purchaseOptions: ProductOptionGroup[]
+  cardHighlights: LocalizedText[]
+  useCases: LocalizedText[]
 }
 
 export interface ListingFilters {
@@ -86,12 +119,12 @@ export interface ListingFilters {
 }
 
 export interface FilterOptions {
-  types: string[]
-  materials: string[]
-  finishes: string[]
+  types: LocalizedValue[]
+  materials: LocalizedValue[]
+  finishes: LocalizedValue[]
   widths: number[]
   heights: number[]
-  handings: string[]
+  handings: LocalizedValue[]
   stockStatuses: StockStatus[]
   minPrice: number
   maxPrice: number
@@ -99,9 +132,7 @@ export interface FilterOptions {
 
 export interface SelectedOptionDetail {
   groupId: string
-  groupLabel: string
   valueId: string
-  valueLabel: string
   priceDelta: number
 }
 
@@ -109,15 +140,11 @@ export interface CartItem {
   id: string
   productId: string
   slug: string
-  name: string
-  image: string
   unitPrice: number
   quantity: number
   currency: CurrencyCode
   selectedOptions: SelectedOptionDetail[]
   stockStatus: StockStatus
-  leadTime: string
-  customOrderCapable: boolean
 }
 
 export interface BreadcrumbItem {
