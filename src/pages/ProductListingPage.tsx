@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { Breadcrumbs } from '../components/Breadcrumbs'
 import { ProductCard } from '../components/ProductCard'
@@ -41,9 +41,43 @@ function CategoryListingView({ category }: { category: CategorySummary }) {
   const filterOptions = getFilterOptions(categoryProducts)
   const [filters, setFilters] = useState<ListingFilters>(() => createDefaultFilters(filterOptions))
   const [sortBy, setSortBy] = useState<SortOption>('featured')
+  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false)
   const { locale, messages } = useLocale()
 
   const filteredProducts = filterProducts(categoryProducts, filters, sortBy, locale)
+
+  useEffect(() => {
+    if (!isFilterDrawerOpen) {
+      return
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsFilterDrawerOpen(false)
+      }
+    }
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isFilterDrawerOpen])
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(min-width: 1081px)')
+    const handleChange = (event: MediaQueryListEvent) => {
+      if (event.matches) {
+        setIsFilterDrawerOpen(false)
+      }
+    }
+
+    mediaQuery.addEventListener('change', handleChange)
+    return () => mediaQuery.removeEventListener('change', handleChange)
+  }, [])
 
   return (
     <div className="page-stack">
@@ -81,9 +115,17 @@ function CategoryListingView({ category }: { category: CategorySummary }) {
       </section>
 
       <div className="listing-layout">
+        <div
+          className={`listing-layout__backdrop ${isFilterDrawerOpen ? 'is-open' : ''}`}
+          aria-hidden={!isFilterDrawerOpen}
+          onClick={() => setIsFilterDrawerOpen(false)}
+        />
+
+        <div className={`listing-layout__sidebar ${isFilterDrawerOpen ? 'is-open' : ''}`}>
         <ProductFilters
           filters={filters}
           options={filterOptions}
+          onClose={() => setIsFilterDrawerOpen(false)}
           onToggleType={(value) => setFilters((current) => ({ ...current, types: toggleStringFilter(current.types, value) }))}
           onToggleMaterial={(value) => setFilters((current) => ({ ...current, materials: toggleStringFilter(current.materials, value) }))}
           onToggleFinish={(value) => setFilters((current) => ({ ...current, finishes: toggleStringFilter(current.finishes, value) }))}
@@ -103,6 +145,7 @@ function CategoryListingView({ category }: { category: CategorySummary }) {
           onBooleanChange={(field, value) => setFilters((current) => ({ ...current, [field]: value }))}
           onReset={() => setFilters(createDefaultFilters(filterOptions))}
         />
+        </div>
 
         <section className="listing-results">
           <div className="listing-results__top">
@@ -110,16 +153,25 @@ function CategoryListingView({ category }: { category: CategorySummary }) {
               <p className="eyebrow">{resolveText(category.label, locale)}</p>
               <h2>{filteredProducts.length} {messages.products.results}</h2>
             </div>
-            <label className="field listing-results__sort">
-              <span>{messages.products.sortBy}</span>
-              <select value={sortBy} onChange={(event) => setSortBy(event.target.value as SortOption)}>
-                <option value="featured">{messages.sort.featured}</option>
-                <option value="popular">{messages.sort.popular}</option>
-                <option value="price-asc">{messages.sort.priceAsc}</option>
-                <option value="price-desc">{messages.sort.priceDesc}</option>
-                <option value="name-asc">{messages.sort.nameAsc}</option>
-              </select>
-            </label>
+            <div className="listing-results__actions">
+              <button
+                type="button"
+                className="button button--ghost listing-results__filters-button"
+                onClick={() => setIsFilterDrawerOpen(true)}
+              >
+                {messages.products.filtersButton}
+              </button>
+              <label className="field listing-results__sort">
+                <span>{messages.products.sortBy}</span>
+                <select value={sortBy} onChange={(event) => setSortBy(event.target.value as SortOption)}>
+                  <option value="featured">{messages.sort.featured}</option>
+                  <option value="popular">{messages.sort.popular}</option>
+                  <option value="price-asc">{messages.sort.priceAsc}</option>
+                  <option value="price-desc">{messages.sort.priceDesc}</option>
+                  <option value="name-asc">{messages.sort.nameAsc}</option>
+                </select>
+              </label>
+            </div>
           </div>
 
           {filteredProducts.length ? (

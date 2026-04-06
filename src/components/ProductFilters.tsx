@@ -5,6 +5,7 @@ import type { FilterOptions, ListingFilters, LocalizedValue, StockStatus } from 
 interface ProductFiltersProps {
   filters: ListingFilters
   options: FilterOptions
+  onClose?: () => void
   onToggleType: (value: string) => void
   onToggleMaterial: (value: string) => void
   onToggleFinish: (value: string) => void
@@ -55,6 +56,7 @@ function FilterSection({ title, values, selectedValues, onToggle }: FilterSectio
 export function ProductFilters({
   filters,
   options,
+  onClose,
   onToggleType,
   onToggleMaterial,
   onToggleFinish,
@@ -81,9 +83,21 @@ export function ProductFilters({
           <p className="eyebrow">{messages.products.overviewEyebrow}</p>
           <h2>{messages.products.refineTitle}</h2>
         </div>
-        <button type="button" className="button button--ghost button--compact" onClick={onReset}>
-          {messages.common.reset}
-        </button>
+        <div className="filter-panel__actions">
+          <button type="button" className="button button--ghost button--compact" onClick={onReset}>
+            {messages.common.reset}
+          </button>
+          {onClose ? (
+            <button
+              type="button"
+              className="icon-button filter-panel__close"
+              onClick={onClose}
+              aria-label={messages.common.close}
+            >
+              ×
+            </button>
+          ) : null}
+        </div>
       </div>
 
       <FilterSection title={messages.filters.type} values={options.types} selectedValues={filters.types} onToggle={onToggleType} />
