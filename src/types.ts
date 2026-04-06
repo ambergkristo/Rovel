@@ -1,79 +1,126 @@
-export type DoorTypeId = 'exterior' | 'interior' | 'alpi' | 'heritage'
+export type CategoryId = 'doors' | 'windows' | 'stairs'
 
-export interface DoorTypeCatalogEntry {
-  id: DoorTypeId
+export type CurrencyCode = 'EUR'
+
+export type StockStatus = 'in-stock' | 'low-stock' | 'made-to-order'
+
+export type SortOption = 'featured' | 'price-asc' | 'price-desc' | 'name-asc'
+
+export interface CategorySummary {
+  id: CategoryId
   label: string
-  description: string
-  materials: string[]
-  finishTypes: string[]
-  veneerSpecies: string[]
-  fixedThicknessMm?: number
-  lockTypes: string[]
-  handleSets: string[]
-  hingeOptions: string[]
-  sealOptions: string[]
-  thresholdTypes: string[]
-  thresholdNote: string
-  supportsThreshold: boolean
-  frameTypes: string[]
-  glassOptions: string[]
-  extras: string[]
-  defaults: Partial<DoorFormData>
+  heroTitle: string
+  shortDescription: string
+  listingIntro: string
+  keyFacts: string[]
 }
 
-export interface DoorFormData {
-  orderReference: string
-  customerName: string
-  projectName: string
-  location: string
-  dueDate: string
-  internalNotes: string
-  doorType: DoorTypeId | ''
-  widthMm: string
-  heightMm: string
-  thicknessMm: string
-  handing: string
-  openingDirection: string
-  frameType: string
-  hasThreshold: boolean
-  thresholdType: string
+export interface ProductImage {
+  id: string
+  src: string
+  alt: string
+  label: string
+}
+
+export interface ProductOptionValue {
+  id: string
+  label: string
+  priceDelta?: number
+  note?: string
+}
+
+export interface ProductOptionGroup {
+  id: string
+  label: string
+  helperText?: string
+  values: ProductOptionValue[]
+}
+
+export interface ProductSpecification {
+  label: string
+  value: string
+}
+
+export interface Product {
+  id: string
+  slug: string
+  category: CategoryId
+  subcategory: string
+  type: string
+  name: string
+  shortDescription: string
+  description: string
+  basePrice: number
+  currency: CurrencyCode
+  images: ProductImage[]
   material: string
-  finishType: string
-  veneerSpecies: string
-  colorCode: string
-  insideOutsideDifferentFinish: boolean
-  insideFinishNotes: string
-  outsideFinishNotes: string
-  hinges: string[]
-  lockType: string
-  handleSet: string
-  closer: boolean
-  seals: string[]
-  glass: string
-  extras: string[]
-  productionNotes: string
-  heritageNotes: string
+  finish: string
+  widthOptions: number[]
+  heightOptions: number[]
+  handings: string[]
+  stockStatus: StockStatus
+  madeToOrder: boolean
+  customOrderCapable: boolean
+  tags: string[]
+  specifications: ProductSpecification[]
+  leadTime: string
+  featured: boolean
+  badge?: string
+  rating: number
+  reviewCount: number
+  purchaseOptions: ProductOptionGroup[]
 }
 
-export interface ValidationIssue {
-  field: keyof DoorFormData
-  message: string
-  type: 'missing' | 'invalid'
-  step: number
+export interface ListingFilters {
+  types: string[]
+  materials: string[]
+  finishes: string[]
+  widths: number[]
+  heights: number[]
+  handings: string[]
+  stockStatuses: StockStatus[]
+  priceMin: number
+  priceMax: number
+  customOrderOnly: boolean
+  madeToOrderOnly: boolean
 }
 
-export type ValidationIssueMap = Partial<Record<keyof DoorFormData, ValidationIssue>>
+export interface FilterOptions {
+  types: string[]
+  materials: string[]
+  finishes: string[]
+  widths: number[]
+  heights: number[]
+  handings: string[]
+  stockStatuses: StockStatus[]
+  minPrice: number
+  maxPrice: number
+}
 
-export interface ValidationResult {
-  status: 'ready' | 'missing' | 'invalid'
+export interface SelectedOptionDetail {
+  groupId: string
+  groupLabel: string
+  valueId: string
+  valueLabel: string
+  priceDelta: number
+}
+
+export interface CartItem {
+  id: string
+  productId: string
+  slug: string
+  name: string
+  image: string
+  unitPrice: number
+  quantity: number
+  currency: CurrencyCode
+  selectedOptions: SelectedOptionDetail[]
+  stockStatus: StockStatus
+  leadTime: string
+  customOrderCapable: boolean
+}
+
+export interface BreadcrumbItem {
   label: string
-  description: string
-  missing: ValidationIssue[]
-  invalid: ValidationIssue[]
-  issueMap: ValidationIssueMap
-}
-
-export interface StepDefinition {
-  id: number
-  title: string
+  to?: string
 }

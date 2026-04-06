@@ -1,26 +1,39 @@
-# Rovel Grupp Door Worksheet MVP
+# Rovel Grupp Storefront MVP
 
-Internal order-entry and production worksheet tool for door orders. The MVP is desktop-first, single-page, and focused on constrained door configuration plus a print-friendly production worksheet.
+Customer-facing ecommerce foundation for Rovel Grupp, focused on timber doors, windows, and stairs.
 
-## What this MVP includes
+This sprint replaces the earlier internal worksheet-oriented MVP with a storefront shell that is credible for first customer exposure while staying intentionally mock-data driven.
 
-- 6-step internal order flow
-- 4 supported door types:
-  - Exterior door
-  - Interior door
-  - Alpi door
-  - Heritage / milieu door
-- JSON-driven catalog and rule constraints
-- Automatic reset of incompatible selections when door type changes
-- Live summary sidebar with validation state
-- Review / printable worksheet view
-- Local draft persistence in `localStorage`
+## What is implemented
+
+- Homepage with hero, category paths, trust sections, featured products, and custom-solution CTA
+- Product overview page at `/products`
+- Reusable category listing flow for:
+  - `/products/doors`
+  - `/products/windows`
+  - `/products/stairs`
+- Reusable product detail page at `/product/:slug`
+- Cart drawer and `/cart` page
+- LocalStorage cart persistence
+- Typed mock catalog with 12 products across doors, windows, and stairs
+- Reusable filtering and sorting for listing pages
+- Custom solution entry page at `/custom-order`
+- Shared storefront design system in plain CSS
+
+## What is intentionally stubbed
+
+- Checkout and payment processing
+- Backend, CMS, ERP, shipping, and auth integrations
+- Real inventory syncing
+- Full quote/request workflow for custom projects
+- Full product configurators beyond the modeled option groups
 
 ## Stack
 
-- React
+- React 19
 - Vite
 - TypeScript
+- React Router
 - Plain CSS
 
 ## Run locally
@@ -30,18 +43,19 @@ Requirements:
 - Node.js 20+
 - npm
 
-Install and start:
+Install dependencies:
 
 ```bash
 npm install
+```
+
+Start the dev server:
+
+```bash
 npm run dev
 ```
 
-Open the app at the local Vite URL shown in the terminal, typically `http://localhost:5173`.
-
-## Production check
-
-Build the app:
+Build for production:
 
 ```bash
 npm run build
@@ -59,33 +73,33 @@ Preview the production build:
 npm run preview
 ```
 
-## MVP behavior
+## Routes
 
-- Door type controls allowed materials, finishes, thickness, locks, hardware, thresholds, and veneer choices.
-- Alpi doors are fixed to `73 mm`.
-- Heritage / milieu doors are fixed to `62 mm`.
-- Exterior doors default to `Double seal`.
-- Threshold type is required only when threshold is enabled.
-- Worksheet readiness states:
-  - `Ready for worksheet generation`
-  - `Missing required fields`
-  - `Invalid configuration`
+- `/`
+- `/products`
+- `/products/doors`
+- `/products/windows`
+- `/products/stairs`
+- `/product/:slug`
+- `/cart`
+- `/custom-order`
 
 ## Project structure
 
-- `src/data/doorCatalog.ts` contains the catalog and defaults.
-- `src/lib/doorRules.ts` applies type-driven sanitization and persistence helpers.
-- `src/lib/validation.ts` contains worksheet validation.
-- `src/components/` contains the summary and printable worksheet presentation.
-- `src/App.tsx` contains the wizard flow and local state wiring.
+- `src/data/storefront.ts` contains category content, mock products, and generated product imagery
+- `src/lib/shop.ts` contains catalog, pricing, cart-item, and filter helpers
+- `src/context/` contains cart state and hooks
+- `src/components/` contains reusable storefront UI pieces
+- `src/pages/` contains route-level pages
+- `src/index.css` contains the shared design system and layout styling
 
-## Out of scope
+## Sprint intent
 
-- Authentication
-- Backend persistence
-- Database
-- Pricing engine
-- Server-side PDF generation
-- Windows configurator
-- Stairs configurator
-- Customer portal
+This repository now behaves like the first real storefront iteration:
+
+- polished customer-facing merchandising
+- reusable ecommerce page architecture
+- mock catalog realistic enough for credible browsing
+- cart behavior that works end-to-end without backend dependencies
+
+The next sensible sprint is checkout and quote-request integration, not another internal worksheet pass.
